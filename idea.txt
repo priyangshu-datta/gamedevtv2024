@@ -1,0 +1,13 @@
+
+=========
+||IDEAS||
+=========
+
+-------|=|=|-------(limited bullets; bullets after breaking floor)(7 bullets) ... ...
+|=|=|--------------(limited bullets; bullets after breaking floor)(6 bullets) (reaching, below floor breaks) (9.8s floor breaks)
+--------------|=|=|(limited bullets; bullets after breaking floor)(5 bullets) (reaching, below floor breaks) (10s floor breaks)
+-------------------(limited bullets; get inititially)(10s floor breaks)
+
+
+a ball structure that flies, and when near the player speeds up. when near player slighty change the dir to approach the player (temporary; cannot win)
+
