@@ -11,3 +11,4 @@
 
 a ball structure that flies, and when near the player speeds up. when near player slighty change the dir to approach the player (temporary; cannot win)
 
+portals for more levels
