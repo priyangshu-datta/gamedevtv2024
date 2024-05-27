@@ -4,14 +4,19 @@ from settings import *
 
 
 class Bullet(pygame.sprite.Sprite):
-    image: pygame.Surface = pygame.transform.rotozoom(
-        pygame.image.load("graphics/Hero-Guy/_Weapon/Bullet.png").convert_alpha(),
-        0,
-        0.25,
-    )
+    image: pygame.Surface | None = None
 
     def __init__(self, group, pos: pygame.Vector2, dir: float | int):
         super().__init__(group)
+
+        if Bullet.image == None:
+            Bullet.image = pygame.transform.rotozoom(
+                pygame.image.load(
+                    "graphics/Hero-Guy/_Weapon/Bullet.png"
+                ).convert_alpha(),
+                0,
+                0.25,
+            )
 
         self.image = Bullet.image
         self.pos = pos
