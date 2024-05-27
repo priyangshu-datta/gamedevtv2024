@@ -2,7 +2,7 @@ import pygame
 from settings import w_W, w_H
 from pathlib import Path
 from enum import StrEnum, auto, Enum
-from bullet import Bullet
+from sprites.bullet import Bullet
 
 
 class PlayerState(StrEnum):
