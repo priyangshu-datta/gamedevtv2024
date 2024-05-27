@@ -4,20 +4,27 @@ from random import randint, randrange, random
 
 
 class Drone(pygame.sprite.Sprite):
-    image: pygame.Surface = pygame.image.load(
-        "graphics/Hero-Guy/_Weapon/Bullet.png"
-    ).convert_alpha()
+    image: pygame.Surface | None = None
 
     def __init__(
         self, groups, player: pygame.sprite.Sprite, dir=pygame.Vector2(1, 0.5)
     ) -> None:
         super().__init__(groups)
+
+        if Drone.image == None:
+            Drone.image = pygame.image.load(
+                "graphics/Hero-Guy/_Weapon/Bullet.png"
+            ).convert_alpha()
+
         self.image = Drone.image
         self.rect = self.image.get_frect(center=(0, 0))
         self.dir = dir
-        self.speed = 200
+        self.speed = randrange(200, 300)
         self.player = player
         self.far = True
+
+        self.change_dir_event = pygame.event.custom_type()
+        self.change_dir_timer = pygame.time.set_timer(self.change_dir_event, 500)
 
     def update(self, dt) -> None:
         assert self.rect
@@ -29,6 +36,15 @@ class Drone(pygame.sprite.Sprite):
             self.dir = (
                 pygame.Vector2(self.player.rect.center) - self.rect.center
             ).normalize()
+        else:
+            events = pygame.event.get()
+
+            for event in events:
+                if event.type == self.change_dir_event and random() > 0.5:
+                    self.dir = (
+                        pygame.Vector2((randint(1, w_W), randint(1, w_H)))
+                    ).normalize()
+
         if self.far:
             self.speed = 200
             self.far = True
