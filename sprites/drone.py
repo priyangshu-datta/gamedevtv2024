@@ -12,31 +12,37 @@ class Drone(pygame.sprite.Sprite):
         super().__init__(groups)
 
         if Drone.image == None:
-            Drone.image = pygame.image.load(
+            Drone.image =pygame.transform.rotozoom(pygame.image.load(
                 "graphics/Hero-Guy/_Weapon/Bullet.png"
-            ).convert_alpha()
+            ).convert_alpha(), 0, 0.7)
 
+        self.player = player
         self.image = Drone.image
-        self.rect = self.image.get_frect(center=(0, 0))
+        assert self.player.rect
+        self.rect = self.image.get_frect(center=(0, self.player.rect.bottom))
         self.dir = dir
         self.speed = randrange(200, 300)
-        self.player = player
         self.far = True
-
+        self.hp = 100
         self.change_dir_event = pygame.event.custom_type()
         self.change_dir_timer = pygame.time.set_timer(self.change_dir_event, 500)
 
-    def update(self, dt) -> None:
+    def update(self, dt):
         assert self.rect
         self.rect.center += self.dir * self.speed * dt
         assert self.player.rect
-        if pygame.Vector2(self.rect.center).distance_to(self.player.rect.center) < 200:
-            self.speed = 400
+        if pygame.Vector2(self.rect.center).distance_to(self.player.rect.center) < 100:
+            self.speed = 800
             self.far = False
             self.dir = (
-                pygame.Vector2(self.player.rect.center) - self.rect.center
+                pygame.Vector2(
+                    self.player.rect.midbottom[0],
+                    self.rect.centerx,
+                )
+                - self.rect.center
             ).normalize()
         else:
+            self.speed = randrange(200, 300)
             events = pygame.event.get()
 
             for event in events:
@@ -46,7 +52,7 @@ class Drone(pygame.sprite.Sprite):
                     ).normalize()
 
         if self.far:
-            self.speed = 200
+            self.speed = randrange(200, 300)
             self.far = True
 
         if self.rect.bottom >= w_H:
@@ -61,3 +67,5 @@ class Drone(pygame.sprite.Sprite):
             self.dir.y *= -1
         if self.rect.left <= 0 or self.rect.right >= w_W:
             self.dir.x *= -1
+            
+        return True

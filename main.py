@@ -30,6 +30,9 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
 
+        if pygame.sprite.collide_mask(self.player, self.drone):
+            self.running = False
+
         self.display_surf.fill("white")
 
         self.game_entites.update(dt)

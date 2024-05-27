@@ -54,11 +54,11 @@ class Player(pygame.sprite.Sprite):
         self.dir = pygame.Vector2(1, 0)
         self.image = self.images[self.state][self.image_index]
         self.rect = self.image.get_frect(center=(w_W / 2, w_H - 80))
-        self.speed = 300
-        self.gravity = 1
+        self.speed = 500
+        self.gravity = 1.4
         self.jumping = False
         self.base = w_H - 80
-        self.jump_height = 80
+        self.jump_height = 220
         self.actions = [
             pygame.K_LEFT,
             pygame.K_RIGHT,
@@ -106,36 +106,31 @@ class Player(pygame.sprite.Sprite):
             self.state = PlayerState.JUMPING
             self.dir.y = -1
 
-    def move_left(self, dt: float):
-        self.state = PlayerState.RUNNING
-        self.dir.x = -1
-        assert self.rect
-        self.rect.center += self.dir * self.speed * dt
+    def action(self, dt: float):
+        keys = pygame.key.get_pressed()
 
-    def move_right(self, dt: float):
-        self.state = PlayerState.RUNNING
-        self.dir.x = 1
-        assert self.rect
-        self.rect.center += self.dir * self.speed * dt
+        if not any([keys[action_key] for action_key in self.actions]):
+            self.state = PlayerState.IDLE
+            return
 
-    def action(self, keys: pygame.key.ScancodeWrapper, dt: float):
-        if keys[pygame.K_LEFT]:
-            self.move_left(dt)
-        if keys[pygame.K_RIGHT]:
-            self.move_right(dt)
+        if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
+            self.state = PlayerState.RUNNING
+            self.dir.x = int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT])
+            assert self.rect
+            self.rect.center += self.dir * self.speed * dt
+            
+            
         if keys[pygame.K_UP]:
             self.jump()
+            
         if keys[pygame.K_SPACE] and self.can_shoot:
             self.shoot()
             self.can_shoot = False
             self.shoot_time = pygame.time.get_ticks()
 
     def update(self, dt: float):
-        keys = pygame.key.get_pressed()
-        if any([keys[action_key] for action_key in self.actions]):
-            self.action(keys, dt)
-        else:
-            self.state = PlayerState.IDLE
+        
+        self.action(dt)
 
         self.shoot_timer()
 
@@ -166,3 +161,5 @@ class Player(pygame.sprite.Sprite):
             self.rect.left = 0
         if self.rect.right >= w_W:
             self.rect.right = w_W
+            
+        return True
