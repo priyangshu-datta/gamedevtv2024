@@ -1,39 +1,49 @@
-import pygame
 from settings import *
-
-pygame.init()
-display_surf = pygame.display.set_mode((w_W, w_H))
-pygame.display.set_caption("MyGame")
-pygame.display.set_icon(pygame.image.load("graphics/icon.jpg"))
-running = True
-timer = pygame.Clock()
-
-
-import time
 
 from sprites.player import Player
 from sprites.drone import Drone
 
-player_group = pygame.sprite.Group()
-player = Player(player_group)
-drone = Drone(player_group, player)
 
-while running:
-    dt = timer.tick() / 1000  # restricts generation of 120 images per second
+class Game:
+    def __init__(self) -> None:
+        pygame.init()
+        self.display_surf = pygame.display.set_mode((w_W, w_H))
+        pygame.display.set_caption("MyGame")
+        pygame.display.set_icon(pygame.image.load("graphics/icon.jpg"))
+        self.running = True
+        self.clock = pygame.Clock()
 
-    start = time.perf_counter()
-    events = pygame.event.get()
+        self.game_entites = pygame.sprite.Group()
+        self.player = Player(self.game_entites)
+        self.drone = Drone(self.game_entites, self.player)
 
-    for event in events:
-        if event.type == pygame.QUIT:
-            running = False
+        while self.running:
+            self.run()
 
-    display_surf.fill("white")
+        pygame.quit()
 
-    player_group.update(dt)
-    player_group.draw(display_surf)
+    def run(self) -> None:
+        dt = self.clock.tick() / 1000  # in seconds
+        events = pygame.event.get()
 
-    pygame.display.update()
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.running = False
+
+        self.display_surf.fill("white")
+
+        self.game_entites.update(dt)
+        self.game_entites.draw(self.display_surf)
+
+        pygame.display.update()
+
+
+def main():
+    Game()
+
+
+if __name__ == "__main__":
+    main()
 
 
 """
@@ -51,6 +61,3 @@ I want the speed to be `v` px/s. I know `f` frames are generated in 1s, i.e., `f
 i.e., i want `v`/`f` px movement per frame. Now, `dt` = (1/`f`) s/fr. Then we get what we have to show to the screen, that is `v`/`f` px/fr.
 
 """
-
-
-pygame.quit()
