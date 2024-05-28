@@ -21,7 +21,7 @@ class Bullet(pygame.sprite.Sprite):
         self.image = Bullet.image
         self.pos = pos
         self.dir = dir
-        self.speed = 1000
+        self.speed = 10000
         self.rect = self.image.get_frect(center=pos)
 
     def update(self, dt: float):

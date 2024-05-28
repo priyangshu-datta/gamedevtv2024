@@ -2,6 +2,9 @@ from settings import *
 
 from sprites.player import Player
 from sprites.drone import Drone
+from sprites.world import World
+from sprites.collision import Collision
+from random import randint
 
 
 class Game:
@@ -9,18 +12,39 @@ class Game:
         pygame.init()
         self.display_surf = pygame.display.set_mode((w_W, w_H))
         pygame.display.set_caption("MyGame")
-        pygame.display.set_icon(pygame.image.load("graphics/icon.jpg"))
+        pygame.display.set_icon(pygame.image.load(Path("graphics/icon.jpg")))
         self.running = True
         self.clock = pygame.Clock()
 
         self.game_entites = pygame.sprite.Group()
-        self.player = Player(self.game_entites)
-        self.drone = Drone(self.game_entites, self.player)
+        self.collision_sprities = pygame.sprite.Group()
+
+        self.player = Player((self.game_entites,), self.collision_sprities)
+        self.drone = Drone(
+            self.player,
+            (d_pos := pygame.Vector2((randint(0, w_W), 0))),
+            (pygame.Vector2(self.player.rect.center) - d_pos).normalize(),  # type: ignore
+            (self.game_entites, self.collision_sprities),
+        )
+
+        self.setup()
 
         while self.running:
             self.run()
 
         pygame.quit()
+
+    def setup(self):
+        world = tmx.load_pygame(Path("graphics/tiles/tmx/level_1.tmx").as_posix())
+
+        # for obj in world.get_layer_by_name("Collision"):  # type: ignore
+        #     Collision(
+        #         (obj.x, obj.y),
+        #         pygame.Surface((obj.width, obj.height)),
+        #         self.game_entites,
+        #     )
+        for x, y, image in world.get_layer_by_name("Level 1").tiles():  # type: ignore
+            World((x * 32, y * 32), image, (self.game_entites, self.collision_sprities))
 
     def run(self) -> None:
         dt = self.clock.tick() / 1000  # in seconds

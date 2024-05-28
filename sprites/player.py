@@ -1,7 +1,9 @@
-import pygame
-from settings import w_W, w_H
+from enum import Enum, StrEnum, auto
 from pathlib import Path
-from enum import StrEnum, auto, Enum
+
+import pygame
+
+from settings import w_H, w_W
 from sprites.bullet import Bullet
 
 
@@ -20,9 +22,10 @@ class PlayerFaceDir(Enum):
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, groups):
+    def __init__(self, groups, collision_sprities: pygame.sprite.Group):
         super().__init__(groups)
         self.groups = groups
+        self.collision_sprities = collision_sprities
         self.state = PlayerState.IDLE
         self.image_index = 0
         self.images = {
@@ -51,14 +54,16 @@ class Player(pygame.sprite.Sprite):
                 for path in Path("graphics/Hero-Guy/06-Die").glob("*.png")
             ],
         }
+        self.face_dir = 1
         self.dir = pygame.Vector2(1, 0)
         self.image = self.images[self.state][self.image_index]
-        self.rect = self.image.get_frect(center=(w_W / 2, w_H - 80))
+        self.rect = self.image.get_frect(midbottom=(w_W / 2, -800))
+        self.old_rect = self.rect.copy()
         self.speed = 500
-        self.gravity = 1.4
+        self.gravity = 1000
+        self.base = w_H - 32
         self.jumping = False
-        self.base = w_H - 80
-        self.jump_height = 220
+        self.jump_height = 600
         self.actions = [
             pygame.K_LEFT,
             pygame.K_RIGHT,
@@ -87,7 +92,7 @@ class Player(pygame.sprite.Sprite):
     def shoot(self):
         assert self.rect
         self.state = PlayerState.SHOOTING
-        if self.dir.x == -1:
+        if self.face_dir == -1:
             bullet_start_pos = pygame.Vector2(
                 self.rect.midleft[0], self.rect.midleft[1]
             )
@@ -97,40 +102,87 @@ class Player(pygame.sprite.Sprite):
             )
 
         bullet_start_pos += (bullet_start_pos - self.rect.midtop) / 2
-        Bullet(self.groups, bullet_start_pos, self.dir.x)
+        Bullet(self.groups, bullet_start_pos, self.face_dir)
 
-    def jump(self):
+    def move(self, dt):
         assert self.rect
-        if not self.jumping:
-            self.jumping = True
-            self.state = PlayerState.JUMPING
-            self.dir.y = -1
 
-    def action(self, dt: float):
+        self.rect.centerx += self.dir.x * self.speed * dt
+        self.collision("horizontal")
+
+        if self.jumping:
+            self.state = PlayerState.JUMPING
+            self.dir.y = -self.jump_height
+            self.jumping = False
+
+        self.dir.y += 0.5 * self.gravity * dt
+        self.rect.y += self.dir.y * dt
+        self.dir.y += 0.5 * self.gravity * dt
+            
+        self.collision("vertical")
+
+    def action(self):
         keys = pygame.key.get_pressed()
 
         if not any([keys[action_key] for action_key in self.actions]):
             self.state = PlayerState.IDLE
+            self.dir.x = 0
             return
 
         if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
             self.state = PlayerState.RUNNING
             self.dir.x = int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT])
-            assert self.rect
-            self.rect.center += self.dir * self.speed * dt
-            
-            
+            self.face_dir = self.dir.x
+
         if keys[pygame.K_UP]:
-            self.jump()
-            
+            self.jumping = True
+
         if keys[pygame.K_SPACE] and self.can_shoot:
             self.shoot()
             self.can_shoot = False
             self.shoot_time = pygame.time.get_ticks()
 
+    def collision(self, axis):
+        for sprite in self.collision_sprities:
+            if sprite.rect.colliderect(self.rect):
+
+                assert self.rect
+                if axis == "horizontal":
+                    if (
+                        self.rect.left <= sprite.rect.right
+                        and self.old_rect.left >= sprite.old_rect.right
+                    ):
+                        self.rect.left = sprite.rect.right
+
+                    if (
+                        self.rect.right >= sprite.rect.left
+                        and self.old_rect.right <= sprite.old_rect.left
+                    ):
+                        self.rect.right = sprite.rect.left
+
+                if axis == "vertical":
+
+                    if (
+                        self.rect.top <= sprite.rect.bottom
+                        and self.old_rect.top >= sprite.old_rect.bottom
+                    ):
+                        self.rect.top = sprite.rect.bottom
+
+                    if (
+                        self.rect.bottom >= sprite.rect.top
+                        and self.old_rect.bottom <= sprite.old_rect.top
+                    ):
+                        self.rect.bottom = sprite.rect.top
+
+                    self.dir.y = 0
+
     def update(self, dt: float):
-        
-        self.action(dt)
+        assert self.rect
+
+        self.old_rect = self.rect.copy()
+
+        self.action()
+        self.move(dt)
 
         self.shoot_timer()
 
@@ -138,28 +190,14 @@ class Player(pygame.sprite.Sprite):
         self.image_index %= len(self.images[self.state])
         self.image = self.images[self.state][int(self.image_index)]
 
-        if self.dir.x == -1:
+        if self.face_dir == -1:
             self._flip_face()
 
-        assert self.rect
-        if self.jumping:
-            self.rect.centery += self.dir.y * self.gravity * self.speed * dt
-
-        if self.rect.centery > self.base:
-            self.rect.centery = self.base
-            self.jumping = False
-            self.state = PlayerState.IDLE
-
-        if self.rect.centery <= self.base - self.jump_height:
-            self.dir.y = 1
-
-        if self.rect.bottom >= w_H:
-            self.rect.bottom = w_H
         if self.rect.top <= 0:
             self.rect.top = 0
         if self.rect.left <= 0:
             self.rect.left = 0
         if self.rect.right >= w_W:
             self.rect.right = w_W
-            
+
         return True
