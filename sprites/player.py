@@ -19,7 +19,10 @@ class Player(pygame.sprite.Sprite):
         self.kinetic_friction = 0.2
         self.mass = 50
         self.gravity = 9.8
-        self.max_speed = 1
+        self.min_speed = 0.008
+        self.step_speed = 0.02
+        self.max_speed = 3
+        self.speed = 1
 
         # Physics variable
         self.last_v = 0
@@ -28,18 +31,29 @@ class Player(pygame.sprite.Sprite):
         self.velocity = vec(0, 0)
         self.acceleration = vec(0, self.gravity)
 
-        # urface contacts
+        # Surface contacts
         self.contact = {"f": False, "lw": False, "rw": False}
 
+        # Timers
+        self.speed_increase_buffer_time = 2000
+        self.speed_last_increase_time = pygame.time.get_ticks()
+
     def check_floor(self):
-        floor_rects = [floor.rect for floor in self.floors]
-        self.contact["f"] = True if self.rect.collidelist(floor_rects) >= 0 else False
+        # floor_rects = [floor.rect for floor in self.floors]
+        # self.contact["f"] = True if self.rect.collidelist(floor_rects) >= 0 else False
+        rect = self.rect
+        player_bottom = pygame.FRect(rect.bottomleft, (rect.width, 2))
+        player_top = pygame.FRect((rect.x, rect.y), (rect.width, 2))
 
         for floor in self.floors:
+            if floor.rect.colliderect(player_top):
+                self.rect.top = floor.rect.bottom
+                self.velocity.y = self.min_speed
             if floor.rect.colliderect(self.rect):
                 self.contact["f"] = True
                 self.rect.bottom = floor.rect.top
                 break
+
         else:
             self.contact["f"] = False
 
@@ -70,15 +84,37 @@ class Player(pygame.sprite.Sprite):
             )
 
     def input(self):
-        keys = pygame.key.get_pressed()
+        pressed_keys = pygame.key.get_pressed()
+        released_keys = pygame.key.get_just_released()
 
-        if keys[pygame.K_LEFT]:
-            # impulse
-            self.velocity.x = -self.max_speed
+        if released_keys[pygame.K_LEFT] or released_keys[pygame.K_RIGHT]:
+            self.speed = self.min_speed
 
-        if keys[pygame.K_RIGHT]:
-            # impulse
-            self.velocity.x = self.max_speed
+        if not self.contact["f"]:
+            return
+
+        if pressed_keys[pygame.K_LEFT]:
+            if (
+                self.speed < self.max_speed
+                and pygame.time.get_ticks() - self.speed_last_increase_time
+                > self.speed_increase_buffer_time
+            ):
+                self.speed += self.step_speed
+
+            self.velocity.x = -self.speed
+
+        if pressed_keys[pygame.K_RIGHT]:
+            if (
+                self.speed < self.max_speed
+                and pygame.time.get_ticks() - self.speed_last_increase_time
+                > self.speed_increase_buffer_time
+            ):
+                self.speed += self.step_speed
+
+            self.velocity.x = self.speed
+
+        if pressed_keys[pygame.K_SPACE]:
+            self.velocity.y = -7
 
     def sliding_friction(self):
         if (
