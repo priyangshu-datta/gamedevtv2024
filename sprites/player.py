@@ -1,9 +1,12 @@
 from settings import *
+from sprites.Bullet import Bullet
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, start_pos, surf, floors, groups):
+    def __init__(self, start_pos, surf, floors, breakable_roofs, enemies, groups):
         super().__init__(groups)
+
+        self._groups = groups
 
         self.image = surf
         self.rect = self.image.get_frect(topleft=start_pos)
@@ -11,6 +14,8 @@ class Player(pygame.sprite.Sprite):
         self.image.fill("red")
 
         self.floors = floors
+        self.enemies = enemies
+        self.breakable_roofs = breakable_roofs
 
         self.prop_constant = 100
 
@@ -27,9 +32,10 @@ class Player(pygame.sprite.Sprite):
         # Physics variable
         self.last_v = 0
         self.last_pos = start_pos
-        self.displacement = 0
+        self.face_dir = 1
         self.velocity = vec(0, 0)
         self.acceleration = vec(0, self.gravity)
+        self.hp = 10
 
         # Surface contacts
         self.contact = {"f": False, "lw": False, "rw": False}
@@ -38,17 +44,31 @@ class Player(pygame.sprite.Sprite):
         self.speed_increase_buffer_time = 2000
         self.speed_last_increase_time = pygame.time.get_ticks()
 
+        self.shoot_last_time = pygame.time.get_ticks()
+        self.shoot_buffer_time = 500
+
     def check_floor(self):
-        # floor_rects = [floor.rect for floor in self.floors]
-        # self.contact["f"] = True if self.rect.collidelist(floor_rects) >= 0 else False
         rect = self.rect
         player_bottom = pygame.FRect(rect.bottomleft, (rect.width, 2))
         player_top = pygame.FRect((rect.x, rect.y), (rect.width, 2))
+        player_left = pygame.FRect(
+            (rect.x, rect.y + rect.height / 4), (2, rect.height / 2)
+        )
+        player_right = pygame.FRect(
+            (rect.x + rect.width, rect.y + rect.height / 4), (2, rect.height / 2)
+        )
 
         for floor in self.floors:
             if floor.rect.colliderect(player_top):
                 self.rect.top = floor.rect.bottom
                 self.velocity.y = self.min_speed
+
+            if floor.rect.colliderect(player_left):
+                self.rect.left = floor.rect.right
+
+            if floor.rect.colliderect(player_right):
+                self.rect.right = floor.rect.left
+
             if floor.rect.colliderect(self.rect):
                 self.contact["f"] = True
                 self.rect.bottom = floor.rect.top
@@ -56,6 +76,16 @@ class Player(pygame.sprite.Sprite):
 
         else:
             self.contact["f"] = False
+
+        for roof in self.breakable_roofs:
+            if roof.rect.colliderect(player_top):
+                self.rect.top = roof.rect.bottom
+                self.velocity.y = self.min_speed
+
+                roof.hp -= 1
+
+                if roof.hp <= 0:
+                    roof.kill()
 
     def normal_force(self):
         if self.contact["f"]:
@@ -68,6 +98,8 @@ class Player(pygame.sprite.Sprite):
                     * self.mass
                     * self.gravity
                 )
+            else:
+                self.acceleration.x = 0
         else:
             if self.acceleration.y != 0:
                 self.acceleration.y = self.gravity - (
@@ -83,12 +115,27 @@ class Player(pygame.sprite.Sprite):
                 0  # change this if need something like horizontal flying boost
             )
 
+    def shoot(self):
+        if pygame.time.get_ticks() - self.shoot_last_time > self.shoot_buffer_time:
+            self.shoot_last_time = pygame.time.get_ticks()
+
+            Bullet(
+                self.rect.center,
+                (self.face_dir * 100, 0),
+                pygame.Surface(size=(10, 10)),
+                self.enemies,
+                self._groups,
+            )
+
     def input(self):
         pressed_keys = pygame.key.get_pressed()
         released_keys = pygame.key.get_just_released()
 
         if released_keys[pygame.K_LEFT] or released_keys[pygame.K_RIGHT]:
             self.speed = self.min_speed
+
+        if pressed_keys[pygame.K_f]:
+            self.shoot()
 
         if not self.contact["f"]:
             return
@@ -102,6 +149,7 @@ class Player(pygame.sprite.Sprite):
                 self.speed += self.step_speed
 
             self.velocity.x = -self.speed
+            self.face_dir = -1
 
         if pressed_keys[pygame.K_RIGHT]:
             if (
@@ -112,6 +160,7 @@ class Player(pygame.sprite.Sprite):
                 self.speed += self.step_speed
 
             self.velocity.x = self.speed
+            self.face_dir = 1
 
         if pressed_keys[pygame.K_SPACE]:
             self.velocity.y = -7
@@ -132,9 +181,10 @@ class Player(pygame.sprite.Sprite):
         self.check_floor()
         self.normal_force()
 
+        if self.hp < 0:
+            self.kill()
+
         self.velocity += 0.5 * self.acceleration * dt
         self.sliding_friction()
         self.rect.topleft += self.velocity * dt * self.prop_constant
         self.velocity += 0.5 * self.acceleration * dt
-
-        self.displacement = vec(self.rect.topleft) - vec(self.last_pos)
