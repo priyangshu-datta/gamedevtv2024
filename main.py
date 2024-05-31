@@ -54,7 +54,7 @@ class Game:
                 groups=(self.game_entites, self.enemy_sprites),
             )
 
-        self.font_renderer = pygame.Font(size=80)
+        self.font_renderer = pygame.Font(size=40)
 
         while self.running:
             self.run()
@@ -95,6 +95,16 @@ class Game:
         )
         self.rect = self.surf.get_frect(midtop=(w_W / 2, 0))
         self.display_surf.blit(self.surf, self.rect)
+
+        if self.player.broken_roof_no != -1:
+
+            self.surf = self.font_renderer.render(
+                f"{(pygame.time.get_ticks() - self.player.roof_broken_time)/1000:.0f}",
+                False,
+                "black",
+            )
+            self.rect = self.surf.get_frect(topright=(w_W, 0))
+            self.display_surf.blit(self.surf, self.rect)
 
         if len(self.enemy_sprites) < 5:
             Zombie(
