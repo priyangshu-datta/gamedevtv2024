@@ -14,3 +14,5 @@ a ball structure that flies, and when near the player speeds up. when near playe
 portals for more levels
 
 increase difficulty: more randomized movement of drone
+
+increase difficulty: floors will not break but timer for the level
