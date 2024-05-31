@@ -3,7 +3,7 @@ import random
 
 
 class Zombie(pygame.sprite.Sprite):
-    def __init__(self, start_pos, surf, floors, player, groups):
+    def __init__(self, start_pos, surf, floors, breakable_floors, player, groups):
         super().__init__(groups)
 
         self.image = surf
@@ -15,6 +15,7 @@ class Zombie(pygame.sprite.Sprite):
 
         self.prop_constant = 100
         self.floors = floors
+        self.breakable_floors = breakable_floors
         self.player = player
 
         # Changable constants
@@ -53,7 +54,10 @@ class Zombie(pygame.sprite.Sprite):
             (rect.x + rect.width, rect.y + rect.height / 4), (2, rect.height / 2)
         )
 
-        for floor in self.floors:
+        floors = self.floors.copy()
+        floors.add(self.breakable_floors)
+
+        for floor in floors:
             if floor.rect.colliderect(player_top):
                 self.rect.top = floor.rect.bottom
                 self.velocity.y = self.min_speed
@@ -71,6 +75,7 @@ class Zombie(pygame.sprite.Sprite):
 
         else:
             self.contact["f"] = False
+
 
     def player_collision(self):
         rect = self.player.rect
@@ -96,14 +101,6 @@ class Zombie(pygame.sprite.Sprite):
             self.last_attack_time = pygame.time.get_ticks()
             self.velocity.x = -self.face_dir * 2
             self.player.hp -= 0.4
-
-        # if (
-        #     self.rect.colliderect(rect)
-        #     and pygame.time.get_ticks() - self.last_attack_time > self.attack_dur
-        # ):
-        #     self.last_attack_time = pygame.time.get_ticks()
-        #     self.velocity.x = -2
-        #     self.player.hp -= 0.4
 
         if (
             pygame.time.get_ticks() - self.last_attack_time < 300

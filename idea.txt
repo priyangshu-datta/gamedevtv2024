@@ -16,3 +16,10 @@ portals for more levels
 increase difficulty: more randomized movement of drone
 
 increase difficulty: floors will not break but timer for the level
+
+
+spawn new zombies every 3-4s, so that player cannot stay at a level forever. Or after deafeating
+every zombie at a floor start a timer, the player has to move to the next floor in the given time
+else, the floor will break and the player will fall.
+There can be an upper limit on the time to break the roof, after the limit the breakable roof
+will be unbreakable.

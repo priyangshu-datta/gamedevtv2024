@@ -30,14 +30,42 @@
 </data>
  </layer>
  <objectgroup id="2" name="Floors">
-  <object id="5" x="0.948851" y="736.308" width="1280" height="33.2098"/>
-  <object id="9" x="0.948851" y="511.431" width="222.94" height="32.5848"/>
-  <object id="10" x="416" y="511.431" width="864.949" height="33.2098"/>
-  <object id="12" x="0" y="287.502" width="703.483" height="32.2609"/>
-  <object id="13" x="928.258" y="287.886" width="351.742" height="32.4408"/>
+  <object id="5" x="0.948851" y="736.308" width="1280" height="33.2098">
+   <properties>
+    <property name="floor_no" type="int" value="0"/>
+   </properties>
+  </object>
+  <object id="9" x="0.948851" y="511.431" width="222.94" height="32.5848">
+   <properties>
+    <property name="floor_no" type="int" value="1"/>
+   </properties>
+  </object>
+  <object id="10" x="416" y="511.431" width="864.949" height="33.2098">
+   <properties>
+    <property name="floor_no" type="int" value="1"/>
+   </properties>
+  </object>
+  <object id="12" x="0" y="287.502" width="703.483" height="32.2609">
+   <properties>
+    <property name="floor_no" type="int" value="2"/>
+   </properties>
+  </object>
+  <object id="13" x="928.258" y="287.886" width="351.742" height="32.4408">
+   <properties>
+    <property name="floor_no" type="int" value="2"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="3" name="Breakable Roofs">
-  <object id="17" x="704.638" y="291.036" width="223.391" height="25.9276"/>
-  <object id="18" x="225.858" y="514.384" width="188.101" height="27.4144"/>
+  <object id="17" x="704.638" y="291.036" width="223.391" height="25.9276">
+   <properties>
+    <property name="roof_no" type="int" value="1"/>
+   </properties>
+  </object>
+  <object id="18" x="225.858" y="514.384" width="188.101" height="27.4144">
+   <properties>
+    <property name="roof_no" type="int" value="0"/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

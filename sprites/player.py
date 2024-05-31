@@ -39,6 +39,8 @@ class Player(pygame.sprite.Sprite):
 
         # Surface contacts
         self.contact = {"f": False, "lw": False, "rw": False}
+        self.standing_floor_no = 0
+        self.broken_roof_no = -1
 
         # Timers
         self.speed_increase_buffer_time = 2000
@@ -46,6 +48,9 @@ class Player(pygame.sprite.Sprite):
 
         self.shoot_last_time = pygame.time.get_ticks()
         self.shoot_buffer_time = 500
+
+        self.break_floor_buffer_time = 5000
+        self.roof_broken_time = float("inf")
 
     def check_floor(self):
         rect = self.rect
@@ -57,6 +62,21 @@ class Player(pygame.sprite.Sprite):
         player_right = pygame.FRect(
             (rect.x + rect.width, rect.y + rect.height / 4), (2, rect.height / 2)
         )
+
+        if (
+            self.broken_roof_no != -1
+            and pygame.time.get_ticks() - self.roof_broken_time
+            > self.break_floor_buffer_time
+        ):
+            [
+                floor.kill()
+                for floor in filter(
+                    lambda floor: floor.floor_no == self.broken_roof_no,
+                    self.floors.sprites(),
+                )
+            ]
+            self.standing_floor_no = self.broken_roof_no + 1
+            self.broken_roof_no = -1
 
         for floor in self.floors:
             if floor.rect.colliderect(player_top):
@@ -85,6 +105,9 @@ class Player(pygame.sprite.Sprite):
                 roof.hp -= 1
 
                 if roof.hp <= 0:
+                    self.broken_roof_no = roof.roof_no
+                    # self.standing_floor_nor = self.broken_roof_no
+                    self.roof_broken_time = pygame.time.get_ticks()
                     roof.kill()
 
     def normal_force(self):
@@ -173,6 +196,15 @@ class Player(pygame.sprite.Sprite):
             self.velocity.x = 0
             self.acceleration.x = 0
 
+    def exit(self):
+        if (
+            self.rect.right < 0
+            or self.rect.left > w_W
+            or self.rect.top > w_H
+            or self.rect.bottom < 0
+        ):
+            self.hp = -1
+
     def update(self, dt):
         self.last_pos = self.rect.topleft
         self.last_v = self.velocity.copy()
@@ -188,3 +220,5 @@ class Player(pygame.sprite.Sprite):
         self.sliding_friction()
         self.rect.topleft += self.velocity * dt * self.prop_constant
         self.velocity += 0.5 * self.acceleration * dt
+
+        self.exit()
