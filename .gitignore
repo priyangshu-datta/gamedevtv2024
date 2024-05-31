@@ -1,4 +1,5 @@
 *scratch.py
 __pycache__
-
+local_gen_stubs
 *.tiled*
+.dmypy*
