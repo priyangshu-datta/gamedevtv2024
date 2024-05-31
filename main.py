@@ -3,6 +3,7 @@ from settings import *
 from random import randint
 from sprites.Floor import Floor
 from sprites.Player import Player
+from sprites.Zombie import Zombie
 
 
 class Game:
@@ -16,13 +17,26 @@ class Game:
 
         self.game_entites: pygame.sprite.Group = pygame.sprite.Group()
         self.floor_sprites: pygame.sprite.Group = pygame.sprite.Group()
+        self.breakable_roof_sprites: pygame.sprite.Group = pygame.sprite.Group()
+        self.enemy_sprites: pygame.sprite.Group = pygame.sprite.Group()
 
         self.player = Player(
-            start_pos=(w_W / 2, 0),
+            start_pos=(w_W - 40, 8 * w_H / 10),
             surf=pygame.Surface(size=(40, 60)),
             floors=self.floor_sprites,
+            breakable_roofs=self.breakable_roof_sprites,
+            enemies=self.enemy_sprites,
             groups=(self.game_entites,),
         )
+
+        for _ in range(5):
+            Zombie(
+                start_pos=(randint(10, 500), 8 * w_H / 10),
+                surf=pygame.Surface(size=(40, randint(40, 60))),
+                floors=self.floor_sprites,
+                player=self.player,
+                groups=(self.game_entites, self.enemy_sprites),
+            )
 
         self.setup()
 
@@ -40,6 +54,13 @@ class Game:
                 pygame.Surface(size=(obj.width, obj.height)),
                 (self.game_entites, self.floor_sprites),
             )
+            
+        for obj in world.get_layer_by_name("Breakable Roofs"):  # type: ignore
+            Floor(
+                vec(x=obj.x, y=obj.y),
+                pygame.Surface(size=(obj.width, obj.height)),
+                (self.game_entites, self.breakable_roof_sprites),
+            )
 
     def run(self) -> None:
         dt = self.clock.tick() / 1000  # in seconds
@@ -50,6 +71,9 @@ class Game:
                 self.running = False
 
         self.display_surf.fill("white")
+
+        if self.player.hp < 0:
+            self.running = False
 
         self.game_entites.update(dt)
         self.game_entites.draw(self.display_surf)
