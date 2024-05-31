@@ -57,7 +57,7 @@
   </object>
  </objectgroup>
  <objectgroup id="3" name="Breakable Roofs">
-  <object id="17" x="704.638" y="291.036" width="223.391" height="25.9276">
+  <object id="17" x="705.638" y="291.036" width="220.391" height="25.9276">
    <properties>
     <property name="roof_no" type="int" value="1"/>
    </properties>
