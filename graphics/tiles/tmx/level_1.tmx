@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="40" height="24" tilewidth="32" tileheight="32" infinite="0" nextlayerid="3" nextobjectid="14">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="40" height="24" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="19">
  <tileset firstgid="1" source="../tsx/floors.tsx"/>
  <layer id="1" name="Level 1" width="40" height="24">
   <data encoding="csv">
@@ -31,9 +31,13 @@
  </layer>
  <objectgroup id="2" name="Floors">
   <object id="5" x="0.948851" y="736.308" width="1280" height="33.2098"/>
-  <object id="9" x="0.948851" y="511.431" width="222.031" height="31.3121"/>
-  <object id="10" x="416.546" y="511.431" width="864.403" height="33.2098"/>
-  <object id="12" x="0" y="287.502" width="702.15" height="32.2609"/>
-  <object id="13" x="928.925" y="286.553" width="351.075" height="35.1075"/>
+  <object id="9" x="0.948851" y="511.431" width="222.94" height="32.5848"/>
+  <object id="10" x="416" y="511.431" width="864.949" height="33.2098"/>
+  <object id="12" x="0" y="287.502" width="703.483" height="32.2609"/>
+  <object id="13" x="928.258" y="287.886" width="351.742" height="32.4408"/>
+ </objectgroup>
+ <objectgroup id="3" name="Breakable Roofs">
+  <object id="17" x="704.638" y="291.036" width="223.391" height="25.9276"/>
+  <object id="18" x="225.858" y="514.384" width="188.101" height="27.4144"/>
  </objectgroup>
 </map>
