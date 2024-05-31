@@ -24,8 +24,8 @@ class Player(pygame.sprite.Sprite):
         self.kinetic_friction = 0.2
         self.mass = 50
         self.gravity = 9.8
-        self.min_speed = 0.008
-        self.step_speed = 0.02
+        self.min_speed = 0.01
+        self.step_speed = 0.07
         self.max_speed = 3
         self.speed = 1
 
