@@ -1,10 +1,8 @@
 from settings import *
 
-from sprites.player import Player
-from sprites.drone import Drone
-from sprites.world import World
-from sprites.collision import Collision
 from random import randint
+from sprites.Floor import Floor
+from sprites.Player import Player
 
 
 class Game:
@@ -16,15 +14,14 @@ class Game:
         self.running = True
         self.clock = pygame.Clock()
 
-        self.game_entites = pygame.sprite.Group()
-        self.collision_sprities = pygame.sprite.Group()
+        self.game_entites: pygame.sprite.Group = pygame.sprite.Group()
+        self.floor_sprites: pygame.sprite.Group = pygame.sprite.Group()
 
-        self.player = Player((self.game_entites,), self.collision_sprities)
-        self.drone = Drone(
-            self.player,
-            (d_pos := pygame.Vector2((randint(0, w_W), 0))),
-            (pygame.Vector2(self.player.rect.center) - d_pos).normalize(),  # type: ignore
-            (self.game_entites, self.collision_sprities),
+        self.player = Player(
+            start_pos=(w_W / 2, 0),
+            surf=pygame.Surface(size=(40, 60)),
+            floors=self.floor_sprites,
+            groups=(self.game_entites,),
         )
 
         self.setup()
@@ -37,14 +34,12 @@ class Game:
     def setup(self):
         world = tmx.load_pygame(Path("graphics/tiles/tmx/level_1.tmx").as_posix())
 
-        # for obj in world.get_layer_by_name("Collision"):  # type: ignore
-        #     Collision(
-        #         (obj.x, obj.y),
-        #         pygame.Surface((obj.width, obj.height)),
-        #         self.game_entites,
-        #     )
-        for x, y, image in world.get_layer_by_name("Level 1").tiles():  # type: ignore
-            World((x * 32, y * 32), image, (self.game_entites, self.collision_sprities))
+        for obj in world.get_layer_by_name("Floors"):  # type: ignore
+            Floor(
+                vec(x=obj.x, y=obj.y),
+                pygame.Surface(size=(obj.width, obj.height)),
+                (self.game_entites, self.floor_sprites),
+            )
 
     def run(self) -> None:
         dt = self.clock.tick() / 1000  # in seconds
@@ -53,9 +48,6 @@ class Game:
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
-
-        if pygame.sprite.collide_mask(self.player, self.drone):
-            self.running = False
 
         self.display_surf.fill("white")
 
