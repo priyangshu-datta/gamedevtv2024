@@ -1,0 +1,3 @@
+[mypy]
+[mypy-pytmx]
+files = "./local_gen_stubs"
