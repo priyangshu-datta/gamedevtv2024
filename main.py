@@ -99,7 +99,7 @@ class Game:
         if self.player.broken_roof_no != -1:
 
             self.surf = self.font_renderer.render(
-                f"{(pygame.time.get_ticks() - self.player.roof_broken_time)/1000:.0f}",
+                f"{(self.player.break_floor_buffer_time - pygame.time.get_ticks() + self.player.roof_broken_time)/1000:.0f}",
                 False,
                 "black",
             )
