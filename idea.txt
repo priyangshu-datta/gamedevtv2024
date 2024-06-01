@@ -23,3 +23,11 @@ every zombie at a floor start a timer, the player has to move to the next floor 
 else, the floor will break and the player will fall.
 There can be an upper limit on the time to break the roof, after the limit the breakable roof
 will be unbreakable.
+
+
+floor not break
+zombies will increase with time on a floor
+some reward like health potion
+health potion help recover
+
+level increase health point range increase, power of bullet

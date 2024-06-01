@@ -39,8 +39,8 @@ class Player(pygame.sprite.Sprite):
 
         # Surface contacts
         self.contact = {"f": False, "lw": False, "rw": False}
-        self.standing_floor_no = 0
         self.broken_roof_no = -1
+        self.max_active_floor = 0
 
         # Timers
         self.speed_increase_buffer_time = 2000
@@ -54,7 +54,7 @@ class Player(pygame.sprite.Sprite):
 
     def check_floor(self):
         rect = self.rect
-        player_bottom = pygame.FRect(rect.bottomleft, (rect.width, 2))
+        player_bottom = pygame.FRect((rect.x, rect.bottom - 2), (rect.width, 2))
         player_top = pygame.FRect((rect.x, rect.y), (rect.width, 2))
         player_left = pygame.FRect(
             (rect.x, rect.y + rect.height / 4), (2, rect.height / 2)
@@ -75,7 +75,7 @@ class Player(pygame.sprite.Sprite):
                     self.floors.sprites(),
                 )
             ]
-            self.standing_floor_no = self.broken_roof_no + 1
+            self.max_active_floor = self.broken_roof_no + 1
             self.broken_roof_no = -1
 
         for floor in self.floors:
@@ -89,7 +89,7 @@ class Player(pygame.sprite.Sprite):
             if floor.rect.colliderect(player_right):
                 self.rect.right = floor.rect.left
 
-            if floor.rect.colliderect(self.rect):
+            if floor.rect.colliderect(player_bottom):
                 self.contact["f"] = True
                 self.rect.bottom = floor.rect.top
                 break
@@ -106,7 +106,6 @@ class Player(pygame.sprite.Sprite):
 
                 if roof.hp <= 0:
                     self.broken_roof_no = roof.roof_no
-                    # self.standing_floor_nor = self.broken_roof_no
                     self.roof_broken_time = pygame.time.get_ticks()
                     roof.kill()
 
@@ -196,6 +195,16 @@ class Player(pygame.sprite.Sprite):
             self.velocity.x = 0
             self.acceleration.x = 0
 
+    def keep_on_floor(self):
+        if self.rect.left < 0:
+            self.rect.left = 0
+            self.face_dir = 1
+            self.velocity.x = self.face_dir
+        if self.rect.right > w_W:
+            self.rect.right = w_W
+            self.face_dir = -1
+            self.velocity.x = self.face_dir
+
     def exit(self):
         if (
             self.rect.right < 0
@@ -206,6 +215,8 @@ class Player(pygame.sprite.Sprite):
             self.hp = -1
 
     def update(self, dt):
+        self.keep_on_floor()
+
         self.last_pos = self.rect.topleft
         self.last_v = self.velocity.copy()
 

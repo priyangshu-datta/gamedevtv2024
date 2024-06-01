@@ -3,11 +3,39 @@ import random
 
 
 class Zombie(pygame.sprite.Sprite):
-    def __init__(self, start_pos, surf, floors, breakable_floors, player, groups):
+    def __init__(self, floors, breakable_floors, player, groups):
         super().__init__(groups)
 
-        self.image = surf
-        self.rect = self.image.get_frect(topleft=start_pos)
+        self.current_floor_no = player.max_active_floor
+        allowed_spawing_area = [
+            floor.rect
+            for floor in filter(
+                lambda floor: floor.floor_no == self.current_floor_no, floors
+            )
+        ]
+
+        self.floor_section = random.choices(
+            allowed_spawing_area,
+            [area.width for area in allowed_spawing_area],
+            k=1,
+        )[0]
+
+        start_pos = vec(
+            random.randint(
+                int(self.floor_section.x),
+                int(self.floor_section.x + self.floor_section.width),
+            ),
+            self.floor_section.y,
+        )
+
+        self.image = pygame.Surface(size=(40, self.floor_section.height * 2))
+        self.rect = self.image.get_frect(
+            topleft=(
+                start_pos
+                if self.current_floor_no != 0
+                else (start_pos.x - 400, start_pos.y)
+            )
+        )
 
         self.image.fill(
             (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
@@ -30,7 +58,7 @@ class Zombie(pygame.sprite.Sprite):
 
         # Physics variable
         self.last_v = vec(0, 0)
-        self.last_pos = start_pos
+        self.last_pos = self.rect.topleft
         self.face_dir = 1
         self.velocity = vec(1, 0)
         self.acceleration = vec(10, self.gravity)
@@ -45,37 +73,38 @@ class Zombie(pygame.sprite.Sprite):
 
     def check_floor(self):
         rect = self.rect
-        player_bottom = pygame.FRect(rect.bottomleft, (rect.width, 2))
-        player_top = pygame.FRect((rect.x, rect.y), (rect.width, 2))
-        player_left = pygame.FRect(
+        zombie_bottom = pygame.FRect((rect.x, rect.bottom - 2), (rect.width, 2))
+        zombie_top = pygame.FRect((rect.x, rect.y), (rect.width, 2))
+        zombie_left = pygame.FRect(
             (rect.x, rect.y + rect.height / 4), (2, rect.height / 2)
         )
-        player_right = pygame.FRect(
+        zombie_right = pygame.FRect(
             (rect.x + rect.width, rect.y + rect.height / 4), (2, rect.height / 2)
         )
 
-        floors = self.floors.copy()
-        floors.add(self.breakable_floors)
+        allowed_spawing_area = [
+            floor.rect
+            for floor in filter(
+                lambda floor: floor.floor_no == self.current_floor_no, self.floors
+            )
+        ]
 
-        for floor in floors:
-            if floor.rect.colliderect(player_top):
-                self.rect.top = floor.rect.bottom
-                self.velocity.y = self.min_speed
-
-            if floor.rect.colliderect(player_left):
-                self.rect.left = floor.rect.right
-
-            if floor.rect.colliderect(player_right):
-                self.rect.right = floor.rect.left
-
-            if floor.rect.colliderect(self.rect):
-                self.contact["f"] = True
-                self.rect.bottom = floor.rect.top
-                break
-
-        else:
+        if len(allowed_spawing_area) < 1:  # if floor breaks
             self.contact["f"] = False
+        else:  # if floor still there
+            if (
+                self.floor_section.top < self.rect.top
+                and self.rect.left > self.floor_section.left
+                and self.rect.right < self.floor_section.right
+            ):  # if zombie under floor
+                self.velocity.y = -4
 
+            if self.floor_section.colliderect(zombie_bottom):
+                self.contact["f"] = True
+                self.rect.bottom = self.floor_section.top
+                return
+
+            self.contact["f"] = False
 
     def player_collision(self):
         rect = self.player.rect

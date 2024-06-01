@@ -37,17 +37,6 @@ class Game:
 
         for _ in range(5):
             Zombie(
-                start_pos=(
-                    randint(50, w_W - 500),
-                    list(
-                        filter(
-                            lambda floor: floor.floor_no == 0,
-                            self.floor_sprites.sprites(),
-                        )
-                    )[0].rect.top
-                    - 60,
-                ),
-                surf=pygame.Surface(size=(40, randint(40, 60))),
                 floors=self.floor_sprites,
                 breakable_floors=self.breakable_roof_sprites,
                 player=self.player,
@@ -108,18 +97,6 @@ class Game:
 
         if len(self.enemy_sprites) < 5:
             Zombie(
-                start_pos=(
-                    randint(0, w_W),
-                    list(
-                        filter(
-                            lambda floor: floor.floor_no
-                            == self.player.standing_floor_no,
-                            self.floor_sprites.sprites(),
-                        )
-                    )[0].rect.y
-                    - 200,
-                ),
-                surf=pygame.Surface(size=(40, randint(40, 60))),
                 floors=self.floor_sprites,
                 breakable_floors=self.breakable_roof_sprites,
                 player=self.player,
