@@ -1,5 +1,4 @@
 from settings import *
-from datamodels.namedtuples import Dim
 
 
 class RestrictedObject(pygame.sprite.Sprite):
@@ -10,7 +9,6 @@ class RestrictedObject(pygame.sprite.Sprite):
         self.rect = self.image.get_frect(topleft=pos)
 
         # object properties
-        self.dim = Dim(self.image.get_width(), self.image.get_height())
         self.M = mass
         self.x = pos
 
