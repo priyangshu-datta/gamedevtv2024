@@ -16,7 +16,7 @@ class Game:
         self.running = True
         self.clock = pygame.Clock()
 
-        self.game_entites: pygame.sprite.Group = pygame.sprite.Group()
+        self.game_entities: pygame.sprite.Group = pygame.sprite.Group()
         self.floor_sprites: pygame.sprite.Group = pygame.sprite.Group()
         self.breakable_roof_sprites: pygame.sprite.Group = pygame.sprite.Group()
         self.enemy_sprites: pygame.sprite.Group = pygame.sprite.Group()
@@ -27,7 +27,7 @@ class Game:
             floors=self.floor_sprites,
             breakable_roofs=self.breakable_roof_sprites,
             enemies=self.enemy_sprites,
-            groups=(self.game_entites,),
+            groups=(self.game_entities,),
         )
 
         # self.zombie_spawn_event = pygame.event.custom_type()
@@ -35,13 +35,15 @@ class Game:
 
         self.setup()
 
-        for _ in range(5):
-            Zombie(
-                floors=self.floor_sprites,
-                breakable_floors=self.breakable_roof_sprites,
-                player=self.player,
-                groups=(self.game_entites, self.enemy_sprites),
-            )
+        # Zombie(
+        #     base_floor=0,
+        #     floors=self.floor_sprites,
+        #     player=self.player,
+        #     groups=(
+        #         self.game_entities,
+        #         self.enemy_sprites,
+        #     ),
+        # )
 
         self.font_renderer = pygame.Font(size=40)
 
@@ -51,23 +53,56 @@ class Game:
         pygame.quit()
 
     def setup(self):
-        world = tmx.load_pygame(Path("graphics/tiles/tmx/level_1.tmx").as_posix())
+        # world = tmx.load_pygame(Path("graphics/tiles/tmx/level_1.tmx").as_posix())
 
-        for obj in world.get_layer_by_name("Floors"):  # type: ignore
-            Floor(
-                vec(x=obj.x, y=obj.y),
-                pygame.Surface(size=(obj.width, obj.height)),
-                obj.properties["floor_no"],
-                (self.game_entites, self.floor_sprites),
-            )
+        for floor_no in range(4):
+            y = w_H - (floor_no * 6 * t_H + t_H)
 
-        for obj in world.get_layer_by_name("Breakable Roofs"):  # type: ignore
-            Roof(
-                vec(x=obj.x, y=obj.y),
-                pygame.Surface(size=(obj.width, obj.height)),
-                obj.properties["roof_no"],
-                (self.game_entites, self.breakable_roof_sprites),
-            )
+            """
+            --------   ---------
+            -------------   ----
+            ---   --------------
+            --------------------
+            """
+            
+            breakable_floor_width = randint(5 * t_W, 6 * t_W)
+            first_section_width = randint(3 * t_W, w_W - breakable_floor_width)
+            last_section_width = w_W - (first_section_width + breakable_floor_width)
+            
+            if last_section_width < 0: last_section_width = 0
+
+            floor_sections = [
+                pygame.Rect(0, y, first_section_width, t_H),
+                # pygame.Rect(first_section_width, y, breakable_floor_width, t_H),
+                pygame.Rect(first_section_width + breakable_floor_width, y, last_section_width, t_H)
+            ]
+            
+            for section in floor_sections:
+                Floor(
+                    pos=vec(section.x, section.y),
+                    surf=pygame.Surface(size=(section.width, section.height)),
+                    floor_no=floor_no,
+                    groups=(self.game_entities, self.floor_sprites),
+                )
+
+            floor_no += 1
+
+        # for obj in world.get_layer_by_name("Floors"):  # type: ignore
+
+        #     Floor(
+        #         pos=vec(x=obj.x, y=obj.y),
+        #         surf=pygame.Surface(size=(obj.width, obj.height)),
+        #         floor_no=obj.properties["floor_no"],
+        #         groups=(self.game_entities, self.floor_sprites),
+        #     )
+
+        # for obj in world.get_layer_by_name("Breakable Roofs"):  # type: ignore
+        #     Roof(
+        #         vec(x=obj.x, y=obj.y),
+        #         pygame.Surface(size=(obj.width, obj.height)),
+        #         obj.properties["roof_no"],
+        #         (self.game_entities, self.breakable_roof_sprites),
+        #     )
 
     def run(self) -> None:
         dt = self.clock.tick() / 1000  # in seconds
@@ -95,19 +130,21 @@ class Game:
             self.rect = self.surf.get_frect(topright=(w_W, 0))
             self.display_surf.blit(self.surf, self.rect)
 
-        if len(self.enemy_sprites) < 5:
-            Zombie(
-                floors=self.floor_sprites,
-                breakable_floors=self.breakable_roof_sprites,
-                player=self.player,
-                groups=(self.game_entites, self.enemy_sprites),
-            )
-
+        # if len(self.enemy_sprites) < 5:
+        #     Zombie(
+        #         base_floor=0,
+        #         floors=self.floor_sprites,
+        #         player=self.player,
+        #         groups=(
+        #             self.game_entities,
+        #             self.enemy_sprites,
+        #         ),
+        #     )
         if self.player.hp < 0:
             self.running = False
 
-        self.game_entites.update(dt)
-        self.game_entites.draw(self.display_surf)
+        self.game_entities.update(dt)
+        self.game_entities.draw(self.display_surf)
 
         pygame.display.update()
 
